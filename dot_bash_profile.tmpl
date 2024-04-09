@@ -1,0 +1,9 @@
+{{- if eq .chezmoi.os "linux" -}}
+if [[ -f ~/.config/.bash_profile ]]; then
+  . ~/.config/.bash_profile
+fi
+{{- else if eq .chezmoi.os "windows" -}}
+if [[ -f ~/.profile/.bash_profile ]]; then
+  . ~/.profile/.bash_profile
+fi
+{{- end -}}

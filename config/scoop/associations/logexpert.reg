@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Applications\logexpert.exe]
+
+[HKEY_CLASSES_ROOT\Applications\logexpert.exe\shell]
+
+[HKEY_CLASSES_ROOT\Applications\logexpert.exe\shell\open]
+
+[HKEY_CLASSES_ROOT\Applications\logexpert.exe\shell\open\command]
+@="\"D:\\Program Files\\Scoop\\apps\\logexpert\\current\\LogExpert.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\.sql]
+"PerceivedType"="text"
+@="logexpert"

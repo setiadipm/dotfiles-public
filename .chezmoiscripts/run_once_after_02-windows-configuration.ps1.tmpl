@@ -1,0 +1,292 @@
+{{- if eq .chezmoi.os "windows" -}}
+### Customize windows and explorer ###
+Write-Host "`n`n# Changing default Start Menu... #"
+Write-Host "    --> Hiding recently added apps in the Start menu..."
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer"
+If (-not (Test-Path -Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "HideRecentlyAddedApps" -PropertyType DWord -Value 1 -Force | Out-Null
+Write-Host "    --> Hiding app suggestions in the Start menu..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+New-ItemProperty -Path $RegPath -Name "SubscribedContent-338388Enabled" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding recently opened items in Start..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+New-ItemProperty -Path "$RegPath" -Name "Start_TrackDocs" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding recommendations in Start..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+New-ItemProperty -Path "$RegPath" -Name "Start_IrisRecommendations" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Setting Start layout..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+New-ItemProperty -Path "$RegPath" -Name "Start_Layout" -PropertyType DWord -Value 1 -Force | Out-Null
+
+Write-Host "`n`n# Changing default Explorer view... #"
+$RegPathCU = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
+Write-Host "    --> Hiding frequent files..."
+New-ItemProperty -Path $RegPathCU -Name "ShowFrequent" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding recent files..."
+New-ItemProperty -Path $RegPathCU -Name "ShowRecent" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding office.com..."
+New-ItemProperty -Path $RegPathCU -Name "ShowCloudFilesInQuickAccess" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding system files..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "ShowSuperHidden" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding OneDrive ad..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "ShowSyncProviderNotifications" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Showing empty drives..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "HideDrivesWithNoMedia" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Showing hidden files..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "Hidden" -PropertyType DWord -Value 1 -Force | Out-Null
+Write-Host "    --> Showing file extensions..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "HideFileExt" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Setting open File Explorer to 'This PC'..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "LaunchTo" -PropertyType DWord -Value 1 -Force | Out-Null
+Write-Host "    --> Setting expand navigation panel to current folder..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "NavPaneExpandToCurrentFolder" -Value 0 -Force | Out-Null
+Write-Host "    --> Setting compact mode..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "UseCompactMode" -Value 1 -Force | Out-Null
+Write-Host "    --> Enabling classic context menu..."
+$RegPath = "HKCU:\SOFTWARE\Classes\CLSID\{86CA1AA0-34AA-4E8B-A509-50C905BAE2A2}\InprocServer32"
+New-Item -Path $RegPath -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "(Default)" -Value "" -Force | Out-Null
+Write-Host "    --> Showing all folders in navigation panel..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "NavPaneShowAllFolders" -Value 0 -Force | Out-Null
+Write-Host "    --> Showing full path in title bar..."
+If (-not (Test-Path -Path "$RegPathCU\CabinetState")) {
+  New-Item -Path "$RegPathCU\CabinetState" -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path "$RegPathCU\CabinetState" -Name "FullPath" -Value 1 -Force | Out-Null
+Write-Host "    --> Setting Quick Access..."
+($Shell = New-Object -Com shell.application) | Out-Null
+$Shell.Namespace('D:\ESB').Self.InvokeVerb("pintohome") | Out-Null
+Write-Host "    --> Disabling touchpad if mouse exists..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
+New-ItemProperty -Path $RegPath -Name "LeaveOnWithMouse" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Setting default folder view..."
+$Shell = "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell"
+$CUFT = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes"
+$LMFT = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes"
+$TempDir = "$env:TEMP"
+$RegFile1 = "$TempDir\WinSetView1.reg"
+# Delete all CU FolderTypes key
+Remove-Item -Path $CUFT -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+# Export LM FolterTypes key
+reg export ($LMFT -replace ":", "") $RegFile1 /y >$null 2>&1
+# Replace registry path in the exported file from LM to CU
+$Data = Get-Content $RegFile1 -Raw
+$Data = $Data -replace 'HKEY_LOCAL_MACHINE','HKEY_CURRENT_USER'
+$Data | Out-File -Encoding Unicode -FilePath $RegFile1 | Out-Null
+# Import modified registry file
+reg import $RegFile1 /reg:64 >$null 2>&1
+# Update properties in specified registry keys
+$FolderTypes = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes"
+Get-ChildItem $FolderTypes | Get-ItemProperty | ForEach-Object {
+  $SortBy = "prop:+System.ItemNameDisplay"
+  $ColumnList = "prop:0(34)System.ItemNameDisplay;0(34)System.ItemFolderPathDisplay;0System.DateModified;0System.ItemTypeText;0System.Size;1System.DateCreated;1System.ItemType"
+  $Key = $_.PSPath
+  $Key = "$Key\TopViews" 
+  If (Test-Path -Path $Key) {
+    Get-ChildItem $Key | Get-ItemProperty | ForEach-Object {
+    $GUID = $_.PSChildName
+    $ChildKey = "$Key\$GUID"         
+    Set-ItemProperty -Path $ChildKey -Name 'LogicalViewMode' -Value 2 | Out-Null
+    Set-ItemProperty -Path $ChildKey -Name 'IconSize' -Value 48 | Out-Null
+    Set-ItemProperty -Path $ChildKey -Name 'GroupBy' -Value "" | Out-Null
+    Set-ItemProperty -Path $ChildKey -Name 'GroupAscending' -Value 1 | Out-Null
+    Set-ItemProperty -Path $ChildKey -Name 'SortByList' -Value $SortBy | Out-Null
+    Set-ItemProperty -Path $ChildKey -Name 'ColumnList' -Value $ColumnList | Out-Null
+    }
+  }
+}
+$FolderKeys = @(
+  "{885A186E-A440-4ADA-812B-DB871B942259}"
+  "{5C4F28B5-F869-4E84-8E60-F11DB97C5CC7}"
+  "{5F4EAB9A-6833-4F61-899D-31CF46979D49}"
+  "{4F01EBC5-2385-41F2-A28E-2C5C91FB56E0}"
+  "{7FDE1A1E-8B31-49A5-93B8-6BE14CFA4943}"	
+  "{7D49D726-3C21-4F05-99AA-FDC2C9474656}"
+  "{FBB3477E-C9E4-4B3B-A2BA-D3F5D3CD46F9}"
+  "{DD61BD66-70E8-48DD-9655-65C5E1AAC2D1}"
+  "{36011842-DCCC-40FE-AA3D-6177EA401788}"
+  "{94D6DDCC-4A68-4175-A374-BD584A510B78}"
+  "{3F2A72A7-99FA-4DDB-A5A8-C604EDF61D6B}"
+  "{672ECD7E-AF04-4399-875C-0290845B6247}"
+  "{71689AC1-CC88-45D0-8A22-2943C3E7DFB3}"
+  "{B3690E58-E961-423B-B687-386EBFD83239}"
+  "{0B2BAAEB-0042-4DCA-AA4D-3EE8648D03E5}"
+  "{71D642A9-F2B1-42CD-AD92-EB9300C7CC0A}"
+  "{4DCAFE13-E6A7-4C28-BE02-CA8C2126280D}"
+  "{5FA96407-7E77-483C-AC93-691D05850DE8}"
+  "{631958A6-AD0F-4035-A745-28AC066DC6ED}"
+  "{51294DA1-D7B1-485B-9E9A-17CFFE33E187}"
+  "{EA25FBD7-3BF7-409E-B97F-3352240903F4}"
+  "{DE2B70EC-9BF7-4A93-BD3D-243F7881D492}"
+  "{524DDB2B-2A4F-43B8-B8FE-E91EF9D8BA69}"
+  "{20338B7B-531C-4AAD-8011-F5B3DB2123EC}"
+  #"{24CCB8A6-C45A-477D-B940-3382B9225668}"	# HomeFolder
+  "{CD0FC69B-71E2-46E5-9690-5BCD9F57AAB3}"
+  "{E053A11A-DCED-4515-8C4E-D51BA917517B}"
+  "{0B0BA2E3-405F-415E-A6EE-CAD625207853}"
+)
+foreach ($Key in $FolderKeys) {
+  $RegPath = "$Shell\$Key"
+  If (-not (Test-Path -Path $RegPath)) {
+    New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+  }
+  New-ItemProperty -Path $RegPath -Name "FFlags" -PropertyType DWord -Value "0x041200001" -Force | Out-Null
+  New-ItemProperty -Path $RegPath -Name "GroupView" -PropertyType DWord -Value 0 -Force | Out-Null
+  New-ItemProperty -Path $RegPath -Name "LogicalViewMode" -PropertyType DWord -Value 2 -Force | Out-Null
+  New-ItemProperty -Path $RegPath -Name "Mode" -PropertyType DWord -Value 6 -Force | Out-Null
+}
+Write-Host "    --> Setting default window size..."
+New-ItemProperty -Path $Shell -Name "MinPos1920x1080x120(1).x" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MinPos1920x1080x120(1).y" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MaxPos1920x1080x120(1).x" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MaxPos1920x1080x120(1).y" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(1).bottom" -PropertyType DWord -Value "0x00000377" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(1).left" -PropertyType DWord -Value "0x000000ba" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(1).right" -PropertyType DWord -Value "0x000006b7" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(1).top" -PropertyType DWord -Value "0x00000089" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MinPos1920x1080x120(2).x" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MinPos1920x1080x120(2).y" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MaxPos1920x1080x120(2).x" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "MaxPos1920x1080x120(2).y" -PropertyType DWord -Value "0xffffffff" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(2).bottom" -PropertyType DWord -Value "0x00000377" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(2).left" -PropertyType DWord -Value "0x000000ba" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(2).right" -PropertyType DWord -Value "0x000006b7" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WinPos1920x1080x120(2).top" -PropertyType DWord -Value "0x00000089" -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "WFlags" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "ShowCmd" -PropertyType DWord -Value 1 -Force | Out-Null
+New-ItemProperty -Path $Shell -Name "HotKey" -PropertyType DWord -Value 0 -Force | Out-Null
+
+Write-Host "`n`n# Changing default Taskbar view... #"
+$RegDir = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion"
+Write-Host "    --> Hiding Copilot..."
+New-ItemProperty -Path "$RegDir\Explorer\Advanced" -Name "ShowCopilotButton" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding Cortana..."
+New-ItemProperty -Path "$RegDir\Explorer\Advanced" -Name "ShowCortanaButton" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding search box..."
+New-ItemProperty -Path "$RegDir\Search" -Name "SearchboxTaskbarMode" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding Task View..."
+New-ItemProperty -Path "$RegDir\Explorer\Advanced" -Name "ShowTaskViewButton" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding Widgets..."
+New-ItemProperty -Path "$RegDir\Explorer\Advanced" -Name "TaskbarDa" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding Chat..."
+New-ItemProperty -Path "$RegDir\Explorer\Advanced" -Name "TaskbarMn" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding People..."
+If (-not (Test-Path -Path "$RegDir\Explorer\Advanced\People")) {
+  New-Item -Path "$RegDir\Explorer\Advanced\People" -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path "$RegDir\Explorer\Advanced\People" -Name "PeopleBand" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding Ink Workspace..."
+New-ItemProperty -Path "$RegDir\PenWorkspace" -Name "PenWorkspaceButtonDesiredVisibility" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Hiding Meet Now..."
+$Settings = Get-ItemPropertyValue -Path "$RegDir\Explorer\StuckRects3" -Name "Settings" -ErrorAction Ignore
+$Settings[9] = 128
+New-ItemProperty -Path "$RegDir\Explorer\StuckRects3" -Name "Settings" -PropertyType Binary -Value $Settings -Force | Out-Null
+Write-Host "    --> Hiding News and Interests..."
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"
+If (-not (Test-Path -Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "EnableFeeds" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Setting taskbar alignment..."
+New-ItemProperty -Path "$RegPathCU\Advanced" -Name "TaskbarAl" -Value 0 -Force | Out-Null
+
+Write-Host "`n`n# Changing windows configuration... #"
+Write-Host "    --> Enabling hibernate..."
+$RegPath = "HKLM:\System\CurrentControlSet\Control\Session Manager\Power"
+New-ItemProperty -Path $RegPath -Name "HibernteEnabled" -PropertyType Dword -Value 1 -Force | Out-Null
+$RegPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings"
+If (-not (Test-Path -Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "ShowHibernateOption" -PropertyType Dword -Value 1 -Force | Out-Null
+Write-Host "    --> Hiding desktop icons..."
+$RegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+New-ItemProperty -Path $RegPath -Name "HideIcons" -Value 1 -PropertyType "DWord" -Force | Out-Null
+Write-Host "    --> Enabling dark mode..."
+$Theme = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+New-ItemProperty -Path $Theme -Name "AppsUseLightTheme" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $Theme -Name "SystemUsesLightTheme" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Removing Edge as default PDF viewer..."
+New-PSDrive -PSProvider Registry -Root HKEY_CLASSES_ROOT -Name HKCR | Out-Null
+$NoPDF = "HKCR:\.pdf"
+$NoProgids = "HKCR:\.pdf\OpenWithProgids"
+$NoWithList = "HKCR:\.pdf\OpenWithList"
+If (-not (Test-Path -Path $NoPDF)) {
+  New-Item -Path $NoPDF -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $NoPDF -Name "NoOpenWith" -Force | Out-Null
+New-ItemProperty -Path $NoPDF -Name "NoStaticDefaultVerb" -Force | Out-Null
+If (-not (Test-Path -Path $NoProgids)) {
+  New-Item -Path $NoProgids -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $NoProgids -Name "NoOpenWith" -Force | Out-Null
+New-ItemProperty -Path $NoProgids -Name "NoStaticDefaultVerb" -Force | Out-Null
+If (-not (Test-Path -Path $NoWithList)) {
+  New-Item -Path $NoWithList -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $NoWithList -Name "NoOpenWith" -Force | Out-Null
+New-ItemProperty -Path $NoWithList -Name "NoStaticDefaultVerb" -Force | Out-Null
+#Appends an underscore '_' to the Registry key for Edge
+$Edge = "HKCR:\AppXd4nrz8ff68srnhf9t5a8sbjyar1cr723_"
+If (-not (Test-Path -Path $Edge)) {
+  New-Item -Path $Edge -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $Edge -Name "AppXd4nrz8ff68srnhf9t5a8sbjyar1cr723_" -Force | Out-Null
+Write-Host "    --> Setting default DNS..."
+$AdapterIdxs = Get-NetAdapter | Where-Object {
+  $_.InterfaceAlias -like "*Wi-Fi*" -or
+  $_.InterfaceAlias -like "*Local Area*"
+}
+$AdapterIdxs | ForEach-Object {
+	$idx = $_.ifIndex
+	Set-DnsClientServerAddress -InterfaceIndex $idx -ServerAddresses ("1.1.1.1", "1.0.0.1")
+}
+Write-Host "    --> Setting firewall..."
+New-NetFirewallRule -Name "Apache" -DisplayName "Apache" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80 -Profile Private,Public 2>$null | Out-Null
+New-NetFirewallRule -Name "MySQL" -DisplayName "MySQL" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 3306 -Profile Private,Public 2>$null | Out-Null
+New-NetFirewallRule -Name "ICMPv4 Allow Ping Requests" -DisplayName "ICMPv4 Allow Ping Requests" -Protocol ICMPv4 -IcmpType 8 -Direction Inbound -Action Allow -Profile Private,Public 2>$null | Out-Null
+New-NetFirewallRule -Name "ICMPv6 Allow Ping Requests" -DisplayName "ICMPv6 Allow Ping Requests" -Protocol ICMPv6 -IcmpType 8 -Direction Inbound -Action Allow -Profile Private,Public 2>$null | Out-Null
+Write-Host "    --> Setting display scaling..."
+$RegPath = "HKCU:\Control Panel\Desktop\PerMonitorSettings"
+If (Test-Path $RegPath) {
+  $ChildKeys = Get-ChildItem -Path $RegPath -Recurse
+  $ChildKeys | ForEach-Object {
+    $ChildKeyPath = $_.PSPath
+    New-ItemProperty -Path $ChildKeyPath -Name "DpiValue" -Value "0xffffffff" -PropertyType "DWord" -Force | Out-Null
+  }
+} Else {
+	$RegPath = "$RegPath\LEN889A0_00_07E3_22^5F09508E6832DB223DB0B80CDF05FB7D"
+	New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+	New-ItemProperty -Path $RegPath -Name "DpiValue" -Value "0xffffffff" -PropertyType "DWord" -Force | Out-Null
+}
+Write-Host "    --> Disabling adaptive brightness..."
+$RegPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
+New-ItemProperty -Path $RegPath -Name "CABCOption" -Value "0" -PropertyType "DWord" -Force | Out-Null
+Write-Host "    --> Setting date format..."
+Set-TimeZone -Name "SE Asia Standard Time"
+Set-WinHomeLocation -GeoID 111 # Indonesia
+Set-Culture -CultureInfo 1033 # en-US
+$RegPath = "HKCU:\Control Panel\International"
+New-ItemProperty -Path $RegPath -name "sShortTime" -Value "HH:mm" -Force | Out-Null
+New-ItemProperty -Path $RegPath -name "sTimeFormat" -Value "HH:mm:ss" -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "iFirstDayOfWeek" -Value 0 -Force | Out-Null
+# shutdown /l
+Write-Host "    --> Setting color theme..."
+$RegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Accent"
+$Palette = @(0xe6, 0xce, 0xf0, 0x00, 0xba, 0x9c, 0xd4, 0x00, 0x89, 0x63, 0xb8, 0x00, 0x74, 0x4d, 0xa9, 0x00, 0x65, 0x41, 0x99, 0x00, 0x40, 0x27, 0x75, 0x00, 0x1f, 0x0e, 0x54, 0x00, 0xef, 0x69, 0x50, 0x00)
+New-ItemProperty -Path $RegPath -Name "AccentColorMenu" -Value "0xffa94d74" -PropertyType "DWord" -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "AccentPalette" -Value $Palette -PropertyType "Binary" -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "StartColorMenu" -Value "0xff994165" -PropertyType "DWord" -Force | Out-Null
+$RegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+New-ItemProperty -Path $RegPath -Name "ColorPrevalence" -Value 1 -PropertyType "DWord" -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "EnableTransparency" -Value 1 -PropertyType "DWord" -Force | Out-Null
+Write-Host "    --> Setting git..."
+git config --system --unset credential.helper
+git config --system core.askPass ""
+Stop-Process -Name "Explorer" -Force -ErrorAction Ignore
+Start-Sleep -Seconds 3
+
+Write-Host ""
+{{- end -}} 

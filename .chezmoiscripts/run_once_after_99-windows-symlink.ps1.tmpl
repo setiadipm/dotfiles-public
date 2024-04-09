@@ -1,0 +1,15 @@
+{{- if eq .chezmoi.os "windows" -}}
+Write-Host "`n`n# Creating symlinks... #"
+
+Write-Host "    --> Symlink scoop persist..."
+$persistDir = Join-Path $env:SCOOP "persist"
+Remove-Item -Path $persistDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+New-Item -ItemType SymbolicLink -Path $persistDir -Value "{{ .chezmoi.sourceDir }}\config\scoop\persist" -ErrorAction SilentlyContinue | Out-Null
+
+## Write-Host "    --> Symlink nvim config..."
+## $nvimDir = Join-Path $env:USERPROFILE "AppData\Local\nvim"
+## Remove-Item -Path $nvimDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+## New-Item -ItemType SymbolicLink -Path $nvimDir -Value "{{ .chezmoi.sourceDir }}\config\nvim" -ErrorAction SilentlyContinue | Out-Null
+
+Write-Host ""
+{{- end -}}

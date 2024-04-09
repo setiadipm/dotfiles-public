@@ -1,0 +1,19 @@
+# This is Git's per-user configuration file.
+[user]
+	email = {{ .email | quote }}
+	name = {{ .name | quote }}
+[core]
+	preloadindex = true
+	fscache = true
+	fsmonitor = true
+	useBuiltinFSMonitor = true
+[filesystem "Oracle Corporation|15.0.2|1783596848"]
+	timestampResolution = 1129 microseconds
+	minRacyThreshold = 0 nanoseconds
+[credential]
+	modalprompt = false
+	useHttpPath = true
+[safe]
+	directory = *
+[gc]
+	auto = 256

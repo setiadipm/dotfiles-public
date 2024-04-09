@@ -1,0 +1,5 @@
+{{- if eq .chezmoi.os "linux" -}}
+{{-   template "gitconfig_linux" .git -}}
+{{- else if eq .chezmoi.os "windows" -}}
+{{-   template "gitconfig_windows" .git -}}
+{{- end -}}

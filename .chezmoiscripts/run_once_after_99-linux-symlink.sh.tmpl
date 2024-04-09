@@ -1,0 +1,11 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+
+printf "\n\n# Creating symlinks... #\n"
+
+## printf "    --> Symlink nvim config...\n"
+## rm -rf ~/.config/nvim >/dev/null
+## ln -s {{ .chezmoi.sourceDir }}/config/nvim ~/.config/nvim >/dev/null
+
+printf "\n"
+{{- end -}}

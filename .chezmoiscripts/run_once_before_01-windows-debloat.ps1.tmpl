@@ -1,0 +1,387 @@
+{{- if eq .chezmoi.os "windows" -}}
+### Remove bloatware ###
+Write-Host "`n`n# Removing Unnecessary Apps... #"
+$AppXApps = @(
+  # Unnecessary Windows 10 AppX Apps
+  "*Microsoft.3DBuilder*"
+  "*Microsoft.Bing*"
+  "*Microsoft.CommsPhone*"
+  "*Microsoft.ConnectivityStore*"
+  "*Microsoft.GamingApp*"
+  "*Microsoft.GamingServices*"
+  "*Microsoft.GetHelp*"
+  "*Microsoft.Getstarted*"
+  "*Microsoft.Messaging*"
+  "*Microsoft.Microsoft3DViewer*"
+  "*Microsoft.MicrosoftOfficeHub*"
+  "*Microsoft.MicrosoftSolitaireCollection*"
+  "*Microsoft.MinecraftUWP*"
+  "*Microsoft.MixedReality.Portal*"
+  "*Microsoft.NetworkSpeedTest*"
+  "*Microsoft.News*"
+  "*Microsoft.Office.Lens*"
+  "*Microsoft.Office.Sway*"
+  "*Microsoft.Office.OneNote*"
+  "*Microsoft.OneConnect*"
+  "*Microsoft.People*"
+  "*Microsoft.PowerAutomateDesktop*"
+  "*Microsoft.Print3D*"
+  "*Microsoft.SkypeApp*"
+  "*Microsoft.Todos*"
+  "*Microsoft.Wallet*"
+  "*Microsoft.WebMediaExtensions*"
+  "*Microsoft.Whiteboard*"
+  "*Microsoft.WindowsAlarms*"
+  #"*Microsoft.WindowsCamera*"
+  "*microsoft.windowscommunicationsapps*"
+  "*Microsoft.WindowsFeedbackHub*"
+  "*Microsoft.WindowsMaps*"
+  "*Microsoft.WindowsReadingList*"
+  "*Microsoft.WindowsSoundRecorder*"
+  "*Microsoft.WindowsTerminal*"
+  "*Microsoft.WindowsTerminalPreview*"
+  "*Microsoft.Xbox.TCUI*"
+  "*Microsoft.XboxApp*"
+  "*Microsoft.XboxGameCallableUI*"
+  "*Microsoft.XboxGameOverlay*"
+  "*Microsoft.XboxGamingOverlay*"
+  "*Microsoft.XboxIdentityProvider*"
+  "*Microsoft.XboxSpeechToTextOverlay*"
+  "*Microsoft.ZuneMusic*"
+  "*Microsoft.ZuneVideo*"
+  # Sponsored Windows 10 AppX Apps
+  # Add sponsored/featured apps to remove in the "*AppName*" format
+  "*ACGMediaPlayer*"
+  "*ActiproSoftwareLLC*"
+  "*AdobePhotoshopExpress*"
+  "*AdobeSystemsIncorporated.AdobePhotoshopExpress*"
+  "*BubbleWitch3Saga*"
+  "*CandyCrush*"
+  "*Dolby*"
+  "*Duolingo-LearnLanguagesforFree*"
+  "*EclipseManager*"
+  "*Facebook*"
+  "*Flipboard*"
+  "*HiddenCityMysteryofShadows*"
+  "*HiddenCity*"
+  "*HotspotShieldFreeVPN*"
+  "*Hulu*"
+  "*LinkedInforWindows*"
+  "*MicrosoftTeams*"
+  "*Microsoft.Advertising.Xaml*"
+  "*Netflix*"
+  "*OneCalendar*"
+  "*PandoraMediaInc*"
+  "*Royal Revolt*"
+  "*Sway*"
+  "*Speed Test*"
+  "*Spotify*"
+  "*Twitter*"
+  "*Viber*"
+  "*Wunderlist*"
+  # Optional: Typically not removed but you can if you need to for some reason
+  #"*Microsoft.BingWeather*"
+  #"*Microsoft.MSPaint*"
+  "*Microsoft.MicrosoftStickyNotes*"
+  #"*Microsoft.Windows.Photos*"
+  #"*Microsoft.WindowsCalculator*"
+  #"*Microsoft.WindowsStore*"
+)
+foreach ($App in $AppXApps) {
+  Write-Host "    --> Removing '$App'..."
+  Get-AppxPackage -Name $App | Remove-AppxPackage -ErrorAction SilentlyContinue
+  Get-AppxPackage -Name $App -AllUsers | Remove-AppxPackage -ErrorAction SilentlyContinue
+  Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $App | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
+}
+Write-Host "    --> Removing 'PC Health Check'..."
+$Folder = (New-Object -ComObject Shell.Application).NameSpace("$env:SystemRoot\Installer")
+# Find the necessary .msi with the Subject property equal to "Windows PC Health Check"
+foreach ($MSI in @(Get-ChildItem -Path "$env:SystemRoot\Installer" -Filter *.msi -File -Force))
+{
+  $File = $Folder.Items() | Where-Object -FilterScript {$_.Name -eq $MSI.Name}
+  # "22" is the "Subject" file property
+  If ($Folder.GetDetailsOf($File, 22) -eq "Windows PC Health Check") {
+    Start-Process -FilePath msiexec.exe -ArgumentList "/uninstall $($MSI.FullName) /quiet /norestart" -Wait
+    break
+  }
+}
+Write-Host "    --> Preventing 'PC Health Check' from returning..."
+If (-not (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\PCHC")) {
+  New-Item -Path "HKLM:\SOFTWARE\Microsoft\PCHC" -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PCHC" -Name "PreviousUninstall" -PropertyType DWord -Value 1 -Force | Out-Null
+Write-Host "    --> Preventing bloatware from returning..."
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
+If (-not (Test-Path $RegPath)) { 
+  New-Item -Path $RegPath -ItemType Directory -Force
+}
+New-ItemProperty -Path $RegPath -Name "DisableWindowsConsumerFeatures" -PropertyType DWord -Value 1 -Force | Out-Null
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force
+}
+New-ItemProperty -Path $RegPath -Name "ContentDeliveryAllowed" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "OemPreInstalledAppsEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "PreInstalledAppsEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "PreInstalledAppsEverEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "SilentInstalledAppsEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "SystemPaneSuggestionsEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+
+
+
+
+
+### Disable services ###
+Write-Host "`n`n# Tweaking features... #"
+Write-Host "    --> Disabling live tiles..."
+$RegPath = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force
+}
+New-ItemProperty -Path $RegPath -Name "NoTileApplicationNotification" -PropertyType DWord -Value 1 -Force | Out-Null
+Write-Host "    --> Disabling Cortana..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force
+}
+New-ItemProperty -Path $RegPath -Name "AcceptedPrivacyPolicy" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPath = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force
+}
+New-ItemProperty -Path $RegPath -Name "RestrictImplicitTextCollection" -PropertyType DWord -Value 1 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "RestrictImplicitInkCollection" -PropertyType DWord -Value 1 -Force | Out-Null
+$RegPath = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "HarvestContacts" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "AllowCortana" -PropertyType DWord -Value 0 -Force | Out-Null
+Write-Host "    --> Disabling Bing Search..."
+$RegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
+New-ItemProperty -Path $RegPath -Name "BingSearchEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPath = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer"
+If (-not (Test-Path -Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "DisableSearchBoxSuggestions" -PropertyType DWord -Value 1 -Force | Out-Null
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+If (-not (Test-Path -Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "DisableWebSearch" -PropertyType DWord -Value 1 -Force | Out-Null
+Write-Host "    --> Disabling XBox Game Bar..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR"
+New-ItemProperty -Path $RegPath -Name "AppCaptureEnabled" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPath = "HKCU:\System\GameConfigStore"
+New-ItemProperty -Path $RegPath -Name "GameDVR_Enabled" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPath = "HKCU:\SOFTWARE\Microsoft\GameBar"
+If (-not (Test-Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "ShowStartupPanel" -Value 0 -PropertyType "DWord" -ErrorAction SilentlyContinue -Force | Out-Null
+Write-Host "    --> Disabling Telemetry..."
+Get-Service -Name "DiagTrack" | Stop-Service -Force | Out-Null
+Get-Service -Name "DiagTrack" | Set-Service -StartupType Disabled | Out-Null
+# Block connection for the Unified Telemetry Client Outbound Traffic
+Get-NetFirewallRule -Group DiagTrack | Set-NetFirewallRule -Enabled False -Action Block | Out-Null
+$RegPathLM = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+New-ItemProperty -Path $RegPathLM -Name "AllowTelemetry" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPathLM -Name "MaxTelemetryAllowed" -PropertyType DWord -Value 1 -Force | Out-Null
+$RegPathLM = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
+New-ItemProperty -Path $RegPathLM -Name "AllowTelemetry" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPathLM = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
+New-ItemProperty -Path $RegPathLM -Name "AllowTelemetry" -PropertyType DWord -Value 0 -Force | Out-Null
+$RegPathCU = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack"
+New-ItemProperty -Path $RegPathCU -Name "ShowedToastAtLevel" -PropertyType DWord -Value 1 -Force | Out-Null
+$RegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+#Write-Host "    --> Disabling OneDrive startup..."
+#Remove-ItemProperty -Path $RegPath -Name "OneDrive"
+Write-Host "    --> Disabling Microsoft Edge startup..."
+$RegistryItems = Get-ItemProperty -Path $RegPath
+$RegistryItems.PSObject.Properties | Where-Object { $_.Name -like "MicrosoftEdgeAutoLaunch*" } | ForEach-Object {
+  Remove-ItemProperty -Path $RegPath -Name $_.Name
+}
+Write-Host "    --> Disabling Windows Feedback Experience program..."
+$RegPath = "HKCU:\SOFTWARE\Microsoft\Siuf\Rules"
+If (-not (Test-Path -Path $RegPath)) {
+  New-Item -Path $RegPath -ItemType Directory -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "NumberOfSIUFInPeriod" -PropertyType DWord -Value 0 -Force | Out-Null
+New-ItemProperty -Path $RegPath -Name "PeriodInNanoSeconds" -PropertyType DWord -Value 0 -Force | Out-Null
+
+Write-Host "`n`n# Tweaking services... #"
+$ServicesDisable = @(
+  #"AdAppMgrSvc"                              # Autodesk Desktop App Service
+  #"AdskLicensingService"                     # Autodesk Desktop Licensing Service
+  #"AdobeARMservice"                          # Adobe Acrobat Update Service
+  #"AGMService"                               # Adobe Genuine Monitor Service
+  #"AGSService"                               # Adobe Genuine Software Integrity Service
+  "NetTcpPortSharing"                        # Net.Tcp Port Sharing Service
+  "RemoteAccess"                             # Routing and Remote Access
+  "RemoteRegistry"                           # Remote Registry
+  "SysMain"                                  # Analyze computer usage and improve it by using the collected data
+  "dmwappushservice"                         # WAP Push Service
+  #"HomeGroupListener"                        # Home Groups service
+  #"HomeGroupProvider"                        # Home Groups service
+  #"lfsvc"                                    # Geolocation Service
+  "MapsBroker"                               # Downloaded Maps Manager
+  #"TrkWks"                                   # Distributed Link Tracking Client
+  #"WMPNetworkSvc"                            # Windows Media Player Network Sharing Service
+  #"WSearch"                                  # Windows Search
+  "XblAuthManager"                           # Xbox Live Auth Manager
+  "XblGameSave"                              # Xbox Live Game Save Service
+  "XboxNetApiSvc"                            # Xbox Live Networking Service
+  "XboxGipSvc"                               # Xbox Accessory Management Service
+  #"ndu"                                    # Windows Network Data Usage Monitor (Fail to stop...)
+)
+foreach ($Service in $ServicesDisable) {
+  Write-Host "    --> Setting '$Service' to Disabled..."
+  Get-Service -Name $Service -ErrorAction SilentlyContinue | Stop-Service -Force SilentlyContinue | Out-Null
+  Get-Service -Name $Service -ErrorAction SilentlyContinue | Set-Service -StartupType Disabled -ErrorAction SilentlyContinue | Out-Null
+}
+$ServicesManual = @(
+  "Bonjour"                       # Bonjour service installed via iTunes
+  #"dbupdate"                      # Dropbox Update Service
+  #"dbupdatem"                     # Dropbox Update Service, too
+  #"OLPUpdateService"              # TencentMeeting OutlookPlugin Update Service
+  #"QQMusicService"                # Tencent Music SpeedUp Service
+  #"WemeetUpdateSvc"               # Tecent Wemeet Update Service
+  #"VSStandardCollectorService150" # Visual Studio Standard Collector Service
+  #"ZoomCptService"                # Zoom Sharing Service
+  #"gupdate"                       # Google Update
+  #"gupdatem"                      # Google Update, too
+  "Steam Client Service"          # Steam Client Service monitors and updates Steam content
+)
+foreach ($Service in $ServicesManual) {
+  Write-Host "    --> Setting '$Service' to Manual..."
+  Get-Service -Name $Service -ErrorAction SilentlyContinue | Set-Service -StartupType Manual -ErrorAction SilentlyContinue | Out-Null
+}
+
+Write-Host "`n`n# Tweaking schedule tasks... #"
+[string[]]$ScheduledTasks = @(
+  # Collects technical data regarding the usage and performance of computer
+  # and Windows 10 software
+  "Microsoft Compatibility Appraiser",
+  # Collects program telemetry information if opted-in to the Microsoft
+  # Customer Experience Improvement Program
+  "ProgramDataUpdater",
+  # This task collects and uploads autochk SQM data if opted-in to the
+  # Microsoft Customer Experience Improvement Program
+  "Proxy",
+  # If the user has consented to participate in the Windows Customer
+  # Experience Improvement Program, this job collects and sends usage data to
+  # Microsoft
+  "Consolidator",
+  # The USB CEIP (Customer Experience Improvement Program) task collects
+  # Universal Serial Bus related statistics and information about your
+  # machine and sends it to the Windows Device Connectivity engineering group
+  # at Microsoft
+  "UsbCeip",
+  # The Windows Disk Diagnostic reports general disk and system information
+  # to Microsoft for users participating in the Customer Experience Program
+  "Microsoft-Windows-DiskDiagnosticDataCollector",
+  # This task shows various Map related toasts
+  "MapsToastTask",
+  # This task checks for updates to maps which you have downloaded for
+  # offline use
+  "MapsUpdateTask",
+  # Initializes Family Safety monitoring and enforcement
+  "FamilySafetyMonitor",
+  # Synchronizes the latest settings with the Microsoft family features
+  # service
+  "FamilySafetyRefreshTask",
+  # XblGameSave Standby Task
+  "XblGameSaveTask",
+  "DmClient",
+  "DmClientOnScenarioDownload"
+)
+Foreach ($Task in $ScheduledTasks) {
+  Write-Host "    --> Disabling '$Task'..."
+  Get-ScheduledTask -TaskName $Task -ErrorAction SilentlyContinue | Disable-ScheduledTask | Out-Null
+}
+
+
+
+
+
+### Reset Start Menu Tiles and pinned Icons in Taskbar ###
+Write-Host "`n`n# Resetting Start Menu Tiles and pinned icons in Taskbar... #"
+$FilePath = "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\DefaultLayouts.xml"
+Set-Content -Path $FilePath -Value '<LayoutModificationTemplate xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" Version="1" xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification">'
+Add-Content -Path $FilePath -value '  <LayoutOptions StartTileGroupCellWidth="6" />'
+Add-Content -Path $FilePath -value '  <DefaultLayoutOverride>'
+Add-Content -Path $FilePath -value '    <StartLayoutCollection>'
+Add-Content -Path $FilePath -value '      <defaultlayout:StartLayout GroupCellWidth="6" />'
+Add-Content -Path $FilePath -value '    </StartLayoutCollection>'
+Add-Content -Path $FilePath -value '  </DefaultLayoutOverride>'
+Add-Content -Path $FilePath -value '    <CustomTaskbarLayoutCollection PinListPlacement="Replace" >'
+Add-Content -Path $FilePath -value '      <defaultlayout:TaskbarLayout>'
+Add-Content -Path $FilePath -value '        <taskbar:TaskbarPinList>'
+Add-Content -Path $FilePath -value '        </taskbar:TaskbarPinList>'
+Add-Content -Path $FilePath -value '      </defaultlayout:TaskbarLayout>'
+Add-Content -Path $FilePath -value '    </CustomTaskbarLayoutCollection>'
+Add-Content -Path $FilePath -value '</LayoutModificationTemplate>'
+$START_MENU_LAYOUT = @"
+<LayoutModificationTemplate xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" Version="1" xmlns:taskbar="http://schemas.microsoft.com/Start/2014/TaskbarLayout" xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification">
+    <LayoutOptions StartTileGroupCellWidth="6" />
+    <DefaultLayoutOverride>
+        <StartLayoutCollection>
+            <defaultlayout:StartLayout GroupCellWidth="6" />
+        </StartLayoutCollection>
+    </DefaultLayoutOverride>
+    <CustomTaskbarLayoutCollection PinListPlacement="Replace" >
+        <defaultlayout:TaskbarLayout>
+            <taskbar:TaskbarPinList>
+            </taskbar:TaskbarPinList>
+        </defaultlayout:TaskbarLayout>
+    </CustomTaskbarLayoutCollection>
+</LayoutModificationTemplate>
+"@
+$layoutFile="$PSScriptRoot\..\StartLayout.xml"
+# Delete layout file if it already exists
+If (Test-Path $layoutFile) {
+  Remove-Item $layoutFile
+}
+# Creates the blank layout file
+$START_MENU_LAYOUT | Out-File $layoutFile -Encoding ASCII
+$regAliases = @("HKLM", "HKCU")
+# Assign the start layout and force it to apply with "LockedStartLayout" at both the machine and user level
+foreach ($regAlias in $regAliases) {
+  $basePath = $regAlias + ":\SOFTWARE\Policies\Microsoft\Windows"
+  $keyPath = $basePath + "\Explorer"
+  If (-not (Test-Path -Path $keyPath)) {
+    New-Item -Path $basePath -Name "Explorer" -Force | Out-Null
+  }
+  Set-ItemProperty -Path $keyPath -Name "LockedStartLayout" -Value 1 | Out-Null
+  Set-ItemProperty -Path $keyPath -Name "StartLayoutFile" -Value $layoutFile | Out-Null
+}
+Start-Sleep -Seconds 3
+# Restart the Start menu, open the start menu (necessary to load the new layout)
+Stop-Process -Name "Explorer" -Force -ErrorAction Ignore
+Start-Sleep -Seconds 3
+$wshell = New-Object -ComObject wscript.shell
+$wshell.SendKeys('^{ESCAPE}')
+Start-Sleep -Seconds 3
+# Enable the ability to pin items again by disabling "LockedStartLayout"
+foreach ($regAlias in $regAliases) {
+  $basePath = $regAlias + ":\SOFTWARE\Policies\Microsoft\Windows"
+  $keyPath = $basePath + "\Explorer"
+  Remove-ItemProperty -Path $keyPath -Name "LockedStartLayout" -Force -ErrorAction Ignore | Out-Null
+  Remove-ItemProperty -Path $keyPath -Name "StartLayoutFile" -Force -ErrorAction Ignore | Out-Null
+}
+# Remove the layout file
+Remove-Item -Path $layoutFile -Force
+# Restart the Start menu, open the start menu (necessary to load the new layout)
+Stop-Process -Name "Explorer" -Force -ErrorAction Ignore
+Start-Sleep -Seconds 3
+# Open the Start menu to load the new layout
+$wshell = New-Object -ComObject WScript.Shell
+$wshell.SendKeys("^{ESC}")
+
+Write-Host ""
+{{- end -}} 

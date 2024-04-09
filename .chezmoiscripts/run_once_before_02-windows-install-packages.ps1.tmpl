@@ -1,0 +1,74 @@
+{{- if eq .chezmoi.os "windows" -}}
+Write-Host "`n`n# Installing packages... #"
+$chocoApps = @(
+  "vcredist140"
+  "zig"
+  "adobereader"
+  "googledrive"
+  "openvpn-connect"
+  "teamviewer"
+)
+foreach ($app in $chocoApps) {
+  Write-Host "    --> Installing $app..."
+  Invoke-Expression -Command "choco install $app -y" | Out-Null
+}
+
+$scoopBuckets = @(
+  "extras"
+  "versions"
+  "nerd-fonts"
+  "nonportable"
+)
+foreach ($bucket in $scoopBuckets) {
+  Write-Host "    --> Adding scoop bucket '$bucket'..."
+  Invoke-Expression -Command "scoop bucket add $bucket" | Out-Null
+}
+
+$scoopApps = @(
+  "extras/brave"
+  "extras/cyberduck"
+  "extras/dbeaver"
+  "extras/mongodb-compass"
+  "extras/mpc-hc-fork"
+  "extras/notepadplusplus"
+  "extras/obsidian"
+  "extras/postman"
+  "extras/vscodium"
+  "extras/windows-terminal"
+  "extras/winmerge"
+  "extras/winscp"
+  "main/neovim"
+  "main/ngrok"
+  "main/oh-my-posh"
+  "main/win32yank"
+  "nerd-fonts/Cascadia-Code"
+  "nerd-fonts/JetBrainsMono-NF-Mono"
+  "nerd-fonts/JetBrains-Mono"
+  # pin to window start (in order)
+  "extras/another-redis-desktop-manager"
+  "extras/logexpert"
+  "extras/emeditor"
+  "extras/obs-studio"
+  "extras/sharex"
+  "extras/pdfsam"
+  "main/scrcpy"
+  "extras/ccleaner"
+  "extras/bleachbit"
+  "extras/spotify"
+  "extras/freedownloadmanager"
+  "extras/deskpins"
+)
+foreach ($app in $scoopApps) {
+  Write-Host "    --> Installing $app..."
+  Invoke-Expression -Command "scoop install $app" | Out-Null
+}
+
+Write-Host "    --> Installing WSL (Restart is NEEDED)..."
+Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -All -NoRestart | Out-Null
+Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -NoRestart | Out-Null
+wsl --install --no-launch | Out-Null
+wsl --set-default-version 2 | Out-Null
+wsl --update
+
+Write-Host ""
+{{- end -}}

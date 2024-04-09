@@ -1,0 +1,56 @@
+{{- if eq .chezmoi.os "windows" -}}
+Write-Host "`n`n# Adding registry entries... #"
+
+Write-Host "    --> Context menu 7zip..."
+Start-Process regedit -ArgumentList "/s `"$env:SCOOP_GLOBAL\7zip\current\install-context.reg`"" | Out-Null
+
+Write-Host "    --> Context menu vscodium..."
+Start-Process regedit -ArgumentList "/s `"$env:SCOOP_GLOBAL\vscodium\current\install-context.reg`"" | Out-Null
+
+Write-Host "    --> Context menu notepadplusplus..."
+Start-Process regedit -ArgumentList "/s `"$env:SCOOP_GLOBAL\notepadplusplus\current\install-context.reg`"" | Out-Null
+
+Write-Host "    --> Application option dbeaver..."
+Start-Process regedit -ArgumentList "/s `"{{ .chezmoi.sourceDir }}/config/scoop/associations/dbeaver.reg`"" | Out-Null
+
+Write-Host "    --> Application option emeditor..."
+Start-Process regedit -ArgumentList "/s `"{{ .chezmoi.sourceDir }}/config/scoop/associations/emeditor.reg`"" | Out-Null
+
+Write-Host "    --> Application option logexpert..."
+Start-Process regedit -ArgumentList "/s `"{{ .chezmoi.sourceDir }}/config/scoop/associations/logexpert.reg`"" | Out-Null
+
+Write-Host "    --> Application option notepadplusplus..."
+Start-Process regedit -ArgumentList "/s `"{{ .chezmoi.sourceDir }}/config/scoop/associations/notepadplusplus.reg`"" | Out-Null
+
+Write-Host "    --> Restarting explorer..."
+Stop-Process -Name explorer -Force | Out-Null
+Start-Process explorer | Out-Null
+
+Write-Host "`n`n# Configuring windows defender... #"
+
+Write-Host "    --> Excluding processes..."
+$processes = @(
+  "git"
+  "git.exe"
+  "node"
+  "node.exe"
+  "VmmemWSL"
+  "WindowsTerminal"
+  "WindowsTerminal.exe"
+)
+foreach ($process in $processes) {
+  Invoke-Expression -Command "Add-MpPreference -ExclusionProcess $process" | Out-Null
+}
+
+Write-Host "    --> Excluding paths..."
+Add-MpPreference -ExclusionPath ([System.Environment]::ExpandEnvironmentVariables("%APPDATA%\fnm\")) | Out-Null
+$paths = @(
+  "D:\EeyO\Documents\"
+  "D:\Program Files\"
+)
+foreach ($path in $paths) {
+  Add-MpPreference -ExclusionPath "$path" | Out-Null
+}
+
+Write-Host ""
+{{- end -}}
