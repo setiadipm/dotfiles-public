@@ -1,0 +1,83 @@
+#ESB
+alias sshesbvpn="ssh root@172.31.242.133 -p 2104"
+alias sshesbdwh="ssh root@172.31.242.134 -p 2104"
+alias sshesbmicro="ssh root@172.31.242.142 -p 2104"
+alias sshesbmail="ssh root@172.31.242.159 -p 2104"
+alias sshesbint="ssh root@172.31.242.164 -p 2104"
+alias sshesbext="ssh root@172.31.242.186 -p 2104"
+alias sshesbcrm="ssh root@172.31.242.136 -p 2104"
+alias sshesbbi="ssh root@128.199.219.110 -p 2104"
+alias sshesbgitlab="ssh root@128.199.83.130 -p 22"
+alias sshesbdev="ssh root@178.128.220.52 -p 22"
+alias sshesbstg="ssh root@188.166.187.128 -p 2104"
+alias sshesbrepl="ssh root@172.31.242.143 -p 2104"
+alias sshesbmon="ssh root@172.31.242.147 -p 2104"
+
+#Production
+alias sshposlite1="ssh root@172.31.242.173 -p 2104"
+alias sshloop1="ssh root@172.31.242.172 -p 2104"
+
+#Production - Ayomakan
+alias ssham1="ssh root@172.31.242.198 -p 2104"
+alias sshamelastic="ssh root@172.31.242.195 -p 2104"
+
+#Production - Core
+alias sshcorelb="ssh root@172.31.242.148 -p 2104"
+alias sshcore1="ssh root@172.31.242.129 -p 2104"
+alias sshcore2="ssh root@172.31.242.149 -p 2104"
+alias sshcore3="ssh root@172.31.242.165 -p 2104"
+alias sshcore4="ssh root@172.31.242.166 -p 2104"
+alias sshjkt4="ssh root@172.31.242.131 -p 2104"
+alias sshposonline="ssh root@172.31.242.132 -p 2104"
+
+#Production - ESO
+alias sshesolb="ssh root@172.31.242.167 -p 2104"
+alias ssheso1="ssh root@172.31.242.168 -p 2104"
+alias ssheso2="ssh root@172.31.242.169 -p 2104"
+alias sshesows="ssh root@172.31.242.124 -p 2104"
+
+#Production - Goods
+alias sshgoods1="ssh root@172.31.242.158 -p 2104"
+alias sshgoodsdb="ssh root@172.31.242.157 -p 2104"
+
+#Starbucks
+alias sshsbuxcore1="ssh support.esb@147.139.174.29 -p 221"
+alias sshsbuxcore2="ssh support.esb@147.139.174.29 -p 222"
+alias sshsbuxcore3="ssh support.esb@10.206.12.57 -p 22"
+alias sshsbuxcore4="ssh support.esb@10.206.12.58 -p 22"
+alias sshsbuxapp1="ssh support.esb@147.139.174.29 -p 225"
+alias sshsbuxapp2="ssh support.esb@147.139.174.29 -p 226"
+
+#Welly
+alias sshwelly="ssh root@206.189.145.212 -p 22"
+
+#Aliases
+alias nvcon="pushd 'C:\Users\EeyO\AppData\Local\nvim' && nvim README.md && popd"
+alias cdnvcon="cd 'C:\Users\EeyO\AppData\Local\nvim'"
+alias bsprof="nvim 'C:\Users\EeyO\.profile\.bash_profile'"
+alias bsalias="nvim 'C:\Users\EeyO\.profile\.bash_aliases'"
+alias cdbsprof="cd 'C:\Users\EeyO\.profile'"
+alias winhosts="nvim 'C:\Windows\System32\drivers\etc\hosts'"
+alias poshprof="nvim 'D:\EeyO\Documents\oh-my-posh\setiadi.omp.json'"
+alias psprof="nvim 'D:\EeyO\Documents\PowerShell\Microsoft.Powershell_profile.ps1'"
+alias alprof="nvim 'C:\Users\EeyO\AppData\Roaming\alacritty\alacritty.yml'"
+alias wzprof="nvim 'D:\Program Files\Wezterm\wezterm.lua'"
+
+alias devdocs="cd 'D:\EeyO\Documents'"
+alias devdocker="cd 'D:\EeyO\Documents\Docker'"
+alias devflutter="cd 'D:\EeyO\Documents\Flutter'"
+alias devgo="cd 'D:\EeyO\Documents\Go\src\gitlab.com\iyoaje-welly'"
+alias devhtdocs="cd 'D:\Apache24\htdocs'"
+alias devng="cd 'D:\EeyO\Documents\Angular'"
+alias devvs="cd 'D:\EeyO\Documents\Visual Studio 2012\Projects'"
+
+alias ll="ls -la"
+
+alias vim="nvim"
+
+alias code="codium"
+
+alias cm="chezmoi"
+cm-cd() {
+	cd $(chezmoi source-path)
+}

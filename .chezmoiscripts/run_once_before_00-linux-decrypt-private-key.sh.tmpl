@@ -1,0 +1,15 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/sh
+
+printf "\n\n# Preparing chezmoi key... #\n"
+
+if [ ! -f "${HOME}/.config/chezmoi/key.txt" ]; then
+  printf "    --> Creating chezmoi config directory...\n"
+  mkdir -p "${HOME}/.config/chezmoi" >/dev/null
+  printf "    --> Decrypting chezmoi key...\n"
+  chezmoi age decrypt --output "${HOME}/.config/chezmoi/key.txt" --passphrase "{{ .chezmoi.sourceDir }}/key.txt.age"
+  chmod 600 "${HOME}/.config/chezmoi/key.txt" >/dev/null
+fi
+
+printf "\n"
+{{- end -}}

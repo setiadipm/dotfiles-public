@@ -1,0 +1,17 @@
+config/
+README.md
+setup-linux.sh
+setup-windows.ps1
+key.txt.age
+
+{{- if eq .chezmoi.os "linux" }}
+.profile/
+{{- end }}
+
+{{- if (and (eq .chezmoi.os "linux") (.chezmoi.kernel.osrelease | lower | contains "microsoft")) }}
+.wslconfig
+{{- end }}
+
+{{- if eq .chezmoi.os "windows" }}
+.config/
+{{- end }}

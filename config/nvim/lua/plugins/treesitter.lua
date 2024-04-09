@@ -1,0 +1,51 @@
+return {
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    event = { "BufReadPost", "BufNewFile" },
+    main = "nvim-treesitter.configs",
+    opts = {
+      auto_install = true,
+      ensure_installed = {
+        "bash",
+        "c",
+        "css",
+        "dockerfile",
+        "gitignore",
+        "go",
+        "gomod",
+        "gowork",
+        "gosum",
+        "html",
+        "javascript",
+        "json",
+        "jsonc",
+        "lua",
+        "make",
+        "markdown",
+        "markdown_inline",
+        "php",
+        "regex",
+        "templ",
+        "typescript",
+        "vim",
+        "yaml",
+      },
+      highlight = {
+        enable = true,
+        use_languagetree = true,
+      },
+      indent = {
+        enable = true,
+      },
+    },
+  },
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    event = { "BufReadPost", "BufNewFile" },
+    opts = {
+      mode = "cursor",
+      max_lines = 3,
+    },
+  },
+}

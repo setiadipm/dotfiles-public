@@ -1,0 +1,163 @@
+{{- if eq .chezmoi.os "windows" -}}
+function Install-Packages-Sync {
+	param (
+		[string]$DownloadFolder,
+		[array]$Packages
+	)
+
+	$Packages | ForEach-Object {
+		$PackageName = $_.Name
+		$PackageUrl = $_.Url
+		$Method = $_.Method
+		if ($Method -eq $null) {
+			$Method = "GET"
+		}
+		
+		$DownloadFile = Join-Path $DownloadFolder $PackageName
+		if (!(Test-Path $DownloadFile)) {
+			Start-BitsTransfer -Source $PackageUrl -HttpMethod $Method -Destination $DownloadFile
+      if ((Test-Path $DownloadFile)) {
+        Write-Host "        --> Installing $PackageName..."
+        Add-AppxPackage -Path $DownloadFile | Out-Null
+        Remove-Item -Path $DownloadFile -Force | Out-Null
+      } else {
+        Write-Host "        --> File $PackageName not found!"
+      }
+		}
+	}
+}
+
+function Install-Packages-Async {
+	param (
+		[string]$DownloadFolder,
+		[array]$Packages
+	)
+	
+	$Job = @()
+	$Packages | ForEach-Object {
+		$PackageName = $_.Name
+		$PackageUrl = $_.Url
+		$Method = $_.Method
+		if ($Method -eq $null) {
+			$Method = "GET"
+		}
+		
+		$DownloadFile = Join-Path $DownloadFolder $PackageName
+		if (!(Test-Path $DownloadFile)) {
+			$Job += Start-BitsTransfer -Source $PackageUrl -HttpMethod $Method -Destination $DownloadFile -Asynchronous
+		}
+	}
+	
+	While ($Job | Where-Object { $_.JobState -eq "Transferring" -or $_.JobState -eq "Connecting" }) {
+		Sleep -Seconds 1
+	}
+	Get-BitsTransfer | Complete-BitsTransfer
+	
+	$Packages | ForEach-Object {
+		$PackageName = $_.Name
+		$DownloadFile = Join-Path $DownloadFolder $PackageName
+		if ((Test-Path $DownloadFile)) {
+			Write-Host "        --> Installing $PackageName..."
+			Add-AppxPackage -Path $DownloadFile | Out-Null
+      Remove-Item -Path $DownloadFile -Force | Out-Null
+		} else {
+			Write-Host "        --> File $PackageName not found!"
+    }
+	}
+}
+
+Write-Host "`n`n# Installing from msstore... #"
+Get-BitsTransfer | Remove-BitsTransfer
+$DownloadFolder = Join-Path $env:TEMP "StoreDownloads"
+if (!(Test-Path $DownloadFolder -PathType Container)) {
+    New-Item $DownloadFolder -ItemType Directory -Force
+}
+
+$TranslucentTB = @(
+	@{
+		Name = "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.UI.Xaml.2.8_8.2310.30001.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.UI.Xaml.2.8_8.2310.30001.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.VCLibs.140.00.UWPDesktop_14.0.32530.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.VCLibs.140.00.UWPDesktop_14.0.32530.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.VCLibs.140.00.UWPDesktop_14.0.32530.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.VCLibs.140.00.UWPDesktop_14.0.32530.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.VCLibs.140.00_14.0.32530.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.VCLibs.140.00_14.0.32530.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.VCLibs.140.00_14.0.32530.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.VCLibs.140.00_14.0.32530.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "28017CharlesMilette.TranslucentTB_2023.1.0.0_neutral_~_v826wp6bftszj.msixbundle"
+		Url = "https://msstore.tokowelly.com/app/28017CharlesMilette.TranslucentTB_2023.1.0.0_neutral_~_v826wp6bftszj.msixbundle"
+	}
+)
+Write-Host "    --> Installing TranslucentTB"
+Install-Packages-Async -DownloadFolder $DownloadFolder -Packages $TranslucentTB
+# Install-Packages-Sync -DownloadFolder $DownloadFolder -Packages $TranslucentTB
+
+$BeWidgets = @(
+	@{
+		Name = "55290BeXCool.BeWidgets_0.13.7.0_neutral_~_n3myysfhx5594.appxbundle"
+		Url = "https://msstore.tokowelly.com/app/55290BeXCool.BeWidgets_0.13.7.0_neutral_~_n3myysfhx5594.appxbundle"
+	}
+)
+Write-Host "    --> Installing BeWidgets"
+Install-Packages-Async -DownloadFolder $DownloadFolder -Packages $BeWidgets
+# Install-Packages-Sync -DownloadFolder $DownloadFolder -Packages $BeWidgets
+
+$LenovoVantage = @(
+	@{
+		Name = "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.NET.Native.Framework.2.2_2.2.29512.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.NET.Native.Runtime.2.2_2.2.28604.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.Services.Store.Engagement_10.0.23012.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.Services.Store.Engagement_10.0.23012.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.Services.Store.Engagement_10.0.23012.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.Services.Store.Engagement_10.0.23012.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.VCLibs.140.00_14.0.32530.0_x64__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.VCLibs.140.00_14.0.32530.0_x64__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "Microsoft.VCLibs.140.00_14.0.32530.0_x86__8wekyb3d8bbwe.appx"
+		Url = "https://msstore.tokowelly.com/dep/Microsoft.VCLibs.140.00_14.0.32530.0_x86__8wekyb3d8bbwe.appx"
+	},
+	@{
+		Name = "E046963F.LenovoCompanion_10.2310.18.0_neutral_~_k1h2ywk1493x8.msixbundle"
+		Url = "https://msstore.tokowelly.com/app/E046963F.LenovoCompanion_10.2310.18.0_neutral_~_k1h2ywk1493x8.msixbundle"
+	}
+)
+Write-Host "    --> Installing Lenovo Vantage"
+Install-Packages-Async -DownloadFolder $DownloadFolder -Packages $LenovoVantage
+# Install-Packages-Sync -DownloadFolder $DownloadFolder -Packages $LenovoVantage
+
+Write-Host ""
+{{- end -}}

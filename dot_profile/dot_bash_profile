@@ -1,0 +1,12 @@
+# include .bash_aliases if it exists
+if [[ -f ~/.profile/.bash_aliases ]]; then
+	. ~/.profile/.bash_aliases
+fi
+
+# export PATH=$(echo "$PATH" | sed -e 's/:\/mingw64\/bin//g')
+
+# initialize oh-my-posh
+eval "$(oh-my-posh init bash --config $HOME/.profile/oh-my-posh/amro_setiadi.omp.json)"
+
+# initialize Z (https://github.com/rupa/z)
+. ~/.profile/z.sh

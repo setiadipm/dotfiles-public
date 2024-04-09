@@ -1,0 +1,86 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "palette": {
+    "os": "#ACB0BE",
+    "closer": "p:os",
+    "pink": "#F5C2E7",
+    "lavender": "#B4BEFE",
+    "blue": "#89B4FA"
+  },
+  "blocks": [
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "foreground": "p:os",
+          "style": "plain",
+          "template": "{{.Icon}} ",
+          "type": "os"
+        },
+        {
+          "foreground": "p:blue",
+          "style": "plain",
+          "template": "{{ .UserName }}@{{ .HostName }} on",
+          "type": "session"
+        },
+        {
+          "foreground": "p:pink",
+          "properties": {
+            "folder_separator_icon": "/",
+            "style": "full"
+          },
+          "style": "plain",
+          "template": " \uf07b {{ .Path }} ",
+          "type": "path"
+        },
+        {
+          "foreground": "p:lavender",
+          "properties": {
+            "branch_icon": "\ue725 ",
+            "cherry_pick_icon": "\ue29b ",
+            "commit_icon": "\uf417 ",
+            "fetch_status": false,
+            "fetch_upstream_icon": false,
+            "merge_icon": "\ue727 ",
+            "no_commits_icon": "\uf594 ",
+            "rebase_icon": "\ue728 ",
+            "revert_icon": "\uf0e2 ",
+            "tag_icon": "\uf412 ",
+            "native_fallback": true
+          },
+          "template": "{{ .HEAD }} ",
+          "style": "plain",
+          "type": "git"
+        },
+        {
+          "style": "plain",
+          "foreground": "p:closer",
+          "template": "\uf105",
+          "type": "text"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "foreground": "p:pink",
+          "style": "plain",
+          "template": "\ue3bf ",
+          "type": "root"
+        },
+        {
+          "foreground": "p:pink",
+          "style": "plain",
+          "template": "# ",
+          "type": "text"
+        }
+      ],
+      "type": "prompt"
+    }
+  ],
+  "final_space": true,
+  "version": 2
+}

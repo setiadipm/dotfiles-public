@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="2">
+            <File firstVisibleLine="49" xOffset="0" scrollWidth="17471" startPos="2185" endPos="2185" selMode="0" offset="0" wrapCount="1" lang="None (Normal Text)" encoding="-1" userReadOnly="no" filename="D:\EeyO\Downloads\new 2.txt" backupFilePath="D:\Program Files\Scoop\apps\notepadplusplus\current\backup\new 2.txt@2023-09-26_205651" originalFileLastModifTimestamp="966927613" originalFileLastModifTimestampHigh="31059397" tabColourId="-1" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+            <File firstVisibleLine="46" xOffset="0" scrollWidth="702" startPos="1520" endPos="1520" selMode="0" offset="0" wrapCount="1" lang="None (Normal Text)" encoding="-1" userReadOnly="no" filename="D:\WSL\README.txt" backupFilePath="" originalFileLastModifTimestamp="1535403919" originalFileLastModifTimestampHigh="31060692" tabColourId="-1" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="936" startPos="576" endPos="576" selMode="0" offset="0" wrapCount="1" lang="None (Normal Text)" encoding="-1" userReadOnly="no" filename="D:\PyZzZ\Cmd Command.txt" backupFilePath="D:\Program Files\Scoop\apps\notepadplusplus\current\backup\Cmd Command.txt@2023-09-30_133137" originalFileLastModifTimestamp="-1694012568" originalFileLastModifTimestampHigh="31060836" tabColourId="-1" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+        </mainView>
+        <subView activeIndex="0" />
+    </Session>
+</NotepadPlus>

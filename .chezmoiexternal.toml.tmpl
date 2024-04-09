@@ -1,0 +1,17 @@
+{{- if eq .chezmoi.os "linux" -}}
+[".config/tmux/plugins/tpm"]
+    type = "git-repo"
+    url = "https://github.com/tmux-plugins/tpm"
+    refreshPeriod = "0"
+[".config/nvim"]
+    type = "git-repo"
+    url = "git@github.com:setiadipm/nvim.git"
+    refreshPeriod = "0"
+{{- end -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+["AppData/Local/nvim"]
+    type = "git-repo"
+    url = "git@github.com:setiadipm/nvim-basic.git"
+    refreshPeriod = "0"
+{{- end -}}

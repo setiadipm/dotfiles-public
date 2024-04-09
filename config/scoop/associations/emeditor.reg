@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Applications\emeditor.exe]
+
+[HKEY_CLASSES_ROOT\Applications\emeditor.exe\shell]
+
+[HKEY_CLASSES_ROOT\Applications\emeditor.exe\shell\open]
+
+[HKEY_CLASSES_ROOT\Applications\emeditor.exe\shell\open\command]
+@="\"D:\\Program Files\\Scoop\\apps\\emeditor\\current\\EmEditor.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\.sql]
+"PerceivedType"="text"
+@="emeditor"

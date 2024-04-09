@@ -1,0 +1,41 @@
+# include .bashrc if it exists
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# include .bash_aliases if it exists
+if [ -f ~/.config/.bash_aliases ]; then
+	. ~/.config/.bash_aliases
+fi
+
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:~/go/bin
+export PATH=$PATH:~/.local/bin
+export PATH=$PATH:'/mnt/d/Program Files/nvim-win64/bin'
+export PATH=$PATH:'/mnt/d/Program Files/Scoop/shims'
+
+export GOPATH=$HOME/go
+
+export EDITOR=nvim
+export VISUAL=nvim
+
+# initialize brew
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+# initialize oh-my-posh
+eval "$(oh-my-posh init bash --config '~/.config/oh-my-posh/catppuccin_mocha_setiadi.omp.json')"
+
+# initialize fnm
+eval "$(fnm env --use-on-cd)"
+
+# initialize Z
+. /home/linuxbrew/.linuxbrew/etc/profile.d/z.sh
+
+# initialize docker
+# sudo service docker start
+
+# replace ip for host.docker.internal
+sudo sed -i '/host.docker.internal/d' /etc/hosts && echo -e "$(ip route show | grep -i default | awk '{ print $3 }')\thost.docker.internal" | sudo tee -a /etc/hosts >/dev/null
+sudo sed -i '/gateway.docker.internal/d' /etc/hosts && echo -e "$(ip route show | grep -i default | awk '{ print $3 }')\tgateway.docker.internal" | sudo tee -a /etc/hosts >/dev/null
+# OR
+#sudo sed -i '/host.docker.internal/d' /etc/hosts && echo -e "\n$(cat /etc/resolv.conf | grep -v '^#' | grep nameserver | awk '{ print $2 }')\thost.docker.internal" | tail -n 1 | sudo tee -a /etc/hosts >/dev/null
