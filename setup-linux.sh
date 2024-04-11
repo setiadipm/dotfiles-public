@@ -1,21 +1,52 @@
 #!/bin/bash
 
+log_color() {
+	color_code="$1"
+	shift
+
+	printf "\033[${color_code}m%s\033[0m\n" "$*" >&2
+}
+
+log_red() {
+	log_color "0;31" "$@"
+}
+
+log_blue() {
+	log_color "0;34" "$@"
+}
+
+log_task() {
+	log_blue "🔃" "$@"
+}
+
+log_error() {
+	log_red "❌" "$@"
+}
+
+error() {
+	log_error "$@"
+	exit 1
+}
+
 cd "$HOME" || return
 system_type=$(uname -s)
 
 if [[ $system_type == "Linux" ]]; then
-	printf "\n\n# HELLO LINUX USER! #\n"
+	printf "\n"
+	log_blue "# HELLO LINUX USER! Setting up machine... #"
 
-	printf "\n\n# Setting up machine... #\n"
+	printf "\n"
+	log_task "Updating and upgrading"
+	sudo apt update -y && sudo apt upgrade -y
 
-	printf "    --> Updating and upgrading...\n"
-	sudo apt update -qq -y && sudo apt upgrade -qq -y
-	printf "    --> Installing git...\n"
-	sudo apt install -qq -y git curl wget build-essential
+	printf "\n"
+	log_task "Installing git"
+	sudo apt install -y git curl wget build-essential
 
-	printf "    --> Installing homebrew...\n"
-	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >/dev/null 2>&1
-	printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"\n' | tee -a ~/.profile >/dev/null
+	printf "\n"
+	log_task "Installing homebrew"
+	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"\n' | tee -a ~/.profile
 	source ~/.profile
 
 	brew_packages=(
@@ -24,8 +55,9 @@ if [[ $system_type == "Linux" ]]; then
 		"age"
 	)
 	for package in "${brew_packages[@]}"; do
-		printf "    --> Installing $package...\n"
-		brew install -q "$package" >/dev/null 2>&1
+		printf "\n"
+		log_task "Installing $package"
+		brew install "$package"
 	done
 
 	printf "\n"

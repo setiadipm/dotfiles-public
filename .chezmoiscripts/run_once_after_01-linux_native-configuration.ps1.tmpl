@@ -1,0 +1,70 @@
+{{- if (and (eq .chezmoi.os "linux") (not (.chezmoi.kernel.osrelease | lower | contains "microsoft"))) -}}
+#!/bin/sh
+
+log_color() {
+  color_code="$1"
+  shift
+
+  printf "\033[${color_code}m%s\033[0m\n" "$*" >&2
+}
+
+log_red() {
+  log_color "0;31" "$@"
+}
+
+log_blue() {
+  log_color "0;34" "$@"
+}
+
+log_task() {
+  log_blue "🔃" "$@"
+}
+
+log_error() {
+  log_red "❌" "$@"
+}
+
+error() {
+  log_error "$@"
+  exit 1
+}
+
+printf "\n"
+log_blue "# Configuring desktop... #"
+
+printf "\n"
+log_task "Configuring desktop interface"
+sudo add-apt-repository universe -y
+sudo apt install -y gnome-tweaks
+gsettings set org.gnome.desktop.interface gtk-theme 'Yaru-purple-dark'
+gsettings set org.gnome.desktop.background picture-uri 'file:///home/setiadi/Downloads/wallpaper.jpg'
+gsettings set org.gnome.desktop.background picture-uri-dark 'file:///home/setiadi/Downloads/wallpaper.jpg'
+gsettings set org.gnome.desktop.background picture-options 'centered'
+gsettings set org.gnome.desktop.screensaver picture-uri 'file:///home/setiadi/Downloads/wallpaper.jpg'
+gsettings set org.gnome.desktop.screensaver picture-options 'centered'
+gsettings set org.gnome.nautilus.icon-view default-zoom-level 'small'
+gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size '24'
+gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'BOTTOM'
+gsettings set org.gnome.system.locale region 'en_US.UTF-8'
+gsettings set org.gnome.desktop.interface clock-format '24h'
+gsettings set org.gtk.Settings.FileChooser show-hidden true
+sudo timedatectl set-timezone Asia/Jakarta
+sudo timedatectl set-ntp true
+# sudo localectl set-locale LANG=en_US.UTF-8
+# sudo localectl set-locale LC_TIME=en_US.UTF-8
+
+printf "\n"
+log_task "Configuring terminal application"
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/audible-bell false
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/background-color "'rgb(23,20,33)'"
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/background-transparency-percent 10
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/font "'JetBrainsMono Nerd Font Mono 12'"
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/foreground-color "'rgb(255,255,255)'"
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/login-shell true
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/use-system-font false
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/use-theme-colors false
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/use-theme-transparency false
+dconf write /org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | awk -F \' '{print $2}')/use-transparent-background true
+
+printf "\n"
+{{- end -}}

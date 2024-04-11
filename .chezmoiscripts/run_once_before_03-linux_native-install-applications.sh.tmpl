@@ -1,0 +1,98 @@
+{{- if (and (eq .chezmoi.os "linux") (not (.chezmoi.kernel.osrelease | lower | contains "microsoft"))) -}}
+#!/bin/bash
+
+log_color() {
+  color_code="$1"
+  shift
+
+  printf "\033[${color_code}m%s\033[0m\n" "$*" >&2
+}
+
+log_red() {
+  log_color "0;31" "$@"
+}
+
+log_blue() {
+  log_color "0;34" "$@"
+}
+
+log_task() {
+  log_blue "🔃" "$@"
+}
+
+log_error() {
+  log_red "❌" "$@"
+}
+
+error() {
+  log_error "$@"
+  exit 1
+}
+
+printf "\n"
+log_blue "# Installing applications... #"
+
+log_task "Installing adobe reader"
+sudo wget -O adobe.deb http://ardownload.adobe.com/pub/adobe/reader/unix/9.x/9.5.5/enu/AdbeRdr9.5.5-1_i386linux_enu.deb
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install libxml2:i386 libcanberra-gtk-module:i386 gtk2-engines-murrine:i386 libatk-adaptor:i386 -y
+sudo apt --fix-broken install -y
+sudo dpkg -i adobe.deb
+sudo rm adobe.deb
+
+log_task "Installing free download manager"
+sudo wget -q https://dn3.freedownloadmanager.org/6/latest/freedownloadmanager.deb
+sudo dpkg -i freedownloadmanager.deb
+sudo rm freedownloadmanager.deb
+
+log_task "Installing mongodb compass"
+sudo wget https://downloads.mongodb.com/compass/mongodb-compass_1.30.1_amd64.deb
+sudo dpkg -i mongodb-compass_1.30.1_amd64.deb
+sudo rm mongodb-compass_1.30.1_amd64.deb
+
+log_task "Installing teamviewer"
+sudo wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
+sudo dpkg -i teamviewer_amd64.deb
+sudo rm teamviewer_amd64.deb
+
+printf "\n"
+log_task "Adding application repositories"
+application_repositories=(
+  "ppa:obsproject/obs-studio"
+)
+for repository in "${application_repositories[@]}"; do
+  sudo add-apt-repository -y "$repository"
+done
+
+debian_packages=(
+  "bleachbit"
+  "obs-studio"
+)
+for package in "${debian_packages[@]}"; do
+  printf "\n"
+  log_task "Installing $package"
+  sudo apt install -y "$package"
+done
+
+
+snap_packages=(
+  "alacritty --classic"
+  "another-redis-desktop-manager"
+  "brave"
+  "codium --classic"
+  "dbeaver-ce"
+  "ngrok"
+  "obsidian"
+  "postman"
+  "scrcpy"
+  "sublime-text"
+)
+for package in "${snap_packages[@]}"; do
+  printf "\n"
+  log_task "Installing $package"
+  sudo snap install "$package"
+done
+
+printf "\n"
+{{- end -}}
