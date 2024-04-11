@@ -8,11 +8,11 @@ log_color() {
 }
 
 log_red() {
-	log_color "0;31" "$@"
+	log_color "0;91" "$@"
 }
 
 log_blue() {
-	log_color "0;34" "$@"
+	log_color "0;96" "$@"
 }
 
 log_task() {
