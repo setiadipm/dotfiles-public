@@ -1,0 +1,67 @@
+{{- if (and (eq .chezmoi.os "linux") (not (.chezmoi.kernel.osrelease | lower | contains "microsoft"))) -}}
+#!/bin/bash
+
+log_color() {
+  color_code="$1"
+  shift
+
+  printf "\033[${color_code}m%s\033[0m\n" "$*" >&2
+}
+
+log_red() {
+  log_color "0;31" "$@"
+}
+
+log_blue() {
+  log_color "0;34" "$@"
+}
+
+log_task() {
+  log_blue "🔃" "$@"
+}
+
+log_error() {
+  log_red "❌" "$@"
+}
+
+error() {
+  log_error "$@"
+  exit 1
+}
+
+printf "\n"
+log_blue "# Installing packages... #"
+
+printf "\n"
+log_task "Installing fonts"
+mkdir -p ~/.local/share/fonts && pushd ~/.local/share/fonts
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Bold/JetBrainsMonoNerdFontMono-Bold.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/BoldItalic/JetBrainsMonoNerdFontMono-BoldItalic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/ExtraBold/JetBrainsMonoNerdFontMono-ExtraBold.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/ExtraBoldItalic/JetBrainsMonoNerdFontMono-ExtraBoldItalic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/ExtraLight/JetBrainsMonoNerdFontMono-ExtraLight.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/ExtraLightItalic/JetBrainsMonoNerdFontMono-ExtraLightItalic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Italic/JetBrainsMonoNerdFontMono-Italic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Light/JetBrainsMonoNerdFontMono-Light.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/LightItalic/JetBrainsMonoNerdFontMono-LightItalic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Medium/JetBrainsMonoNerdFontMono-Medium.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/MediumItalic/JetBrainsMonoNerdFontMono-MediumItalic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFontMono-Regular.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/SemiBold/JetBrainsMonoNerdFontMono-SemiBold.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/SemiBoldItalic/JetBrainsMonoNerdFontMono-SemiBoldItalic.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Thin/JetBrainsMonoNerdFontMono-Thin.ttf
+curl -fOsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/ThinItalic/JetBrainsMonoNerdFontMono-ThinItalic.ttf
+popd
+
+sudo mkdir -p ~/.local/bin
+brew_packages=(
+  "tmux"
+)
+for package in "${brew_packages[@]}"; do
+  printf "\n"
+  log_task "Installing $package"
+  brew install "$package"
+done
+
+printf "\n"
+{{- end -}}

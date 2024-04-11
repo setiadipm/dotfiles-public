@@ -1,11 +1,41 @@
 {{- if eq .chezmoi.os "linux" -}}
 #!/bin/bash
 
-printf "\n\n# Creating symlinks... #\n"
+log_color() {
+  color_code="$1"
+  shift
 
-## printf "    --> Symlink nvim config...\n"
+  printf "\033[${color_code}m%s\033[0m\n" "$*" >&2
+}
+
+log_red() {
+  log_color "0;31" "$@"
+}
+
+log_blue() {
+  log_color "0;34" "$@"
+}
+
+log_task() {
+  log_blue "🔃" "$@"
+}
+
+log_error() {
+  log_red "❌" "$@"
+}
+
+error() {
+  log_error "$@"
+  exit 1
+}
+
+## printf "\n"
+## log_blue "# Creating symlinks... #"
+
+## printf "\n"
+## log_task "Symlink nvim config"
 ## rm -rf ~/.config/nvim >/dev/null
 ## ln -s {{ .chezmoi.sourceDir }}/config/nvim ~/.config/nvim >/dev/null
 
-printf "\n"
+## printf "\n"
 {{- end -}}
