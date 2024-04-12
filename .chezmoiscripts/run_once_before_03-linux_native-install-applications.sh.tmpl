@@ -32,29 +32,41 @@ error() {
 printf "\n"
 log_blue "# Installing applications... #"
 
-log_task "Installing adobe reader"
-sudo wget -O adobe.deb http://ardownload.adobe.com/pub/adobe/reader/unix/9.x/9.5.5/enu/AdbeRdr9.5.5-1_i386linux_enu.deb
-sudo dpkg --add-architecture i386
-sudo apt update
-sudo apt install libxml2:i386 libcanberra-gtk-module:i386 gtk2-engines-murrine:i386 libatk-adaptor:i386 -y
-sudo apt --fix-broken install -y
-sudo dpkg -i adobe.deb
-sudo rm adobe.deb
+dpkg -s "adobereader-enu" &> /dev/null  
+if [ $? -ne 0 ]; then
+    log_task "Installing adobe reader"
+    sudo wget -O adobe.deb http://ardownload.adobe.com/pub/adobe/reader/unix/9.x/9.5.5/enu/AdbeRdr9.5.5-1_i386linux_enu.deb
+    sudo dpkg --add-architecture i386
+    sudo apt update
+    sudo apt install libxml2:i386 libcanberra-gtk-module:i386 gtk2-engines-murrine:i386 libatk-adaptor:i386 -y
+    sudo apt --fix-broken install -y
+    sudo dpkg -i adobe.deb
+    sudo rm adobe.deb
+fi
 
-log_task "Installing free download manager"
-sudo wget -q https://dn3.freedownloadmanager.org/6/latest/freedownloadmanager.deb
-sudo dpkg -i freedownloadmanager.deb
-sudo rm freedownloadmanager.deb
+dpkg -s "freedownloadmanager" &> /dev/null  
+if [ $? -ne 0 ]; then
+  log_task "Installing free download manager"
+  sudo wget -q https://dn3.freedownloadmanager.org/6/latest/freedownloadmanager.deb
+  sudo dpkg -i freedownloadmanager.deb
+  sudo rm freedownloadmanager.deb
+fi
 
-log_task "Installing mongodb compass"
-sudo wget https://downloads.mongodb.com/compass/mongodb-compass_1.30.1_amd64.deb
-sudo dpkg -i mongodb-compass_1.30.1_amd64.deb
-sudo rm mongodb-compass_1.30.1_amd64.deb
+dpkg -s "mongodb-compass" &> /dev/null  
+if [ $? -ne 0 ]; then
+  log_task "Installing mongodb compass"
+  sudo wget https://downloads.mongodb.com/compass/mongodb-compass_1.30.1_amd64.deb
+  sudo dpkg -i mongodb-compass_1.30.1_amd64.deb
+  sudo rm mongodb-compass_1.30.1_amd64.deb
+fi
 
-log_task "Installing teamviewer"
-sudo wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-sudo dpkg -i teamviewer_amd64.deb
-sudo rm teamviewer_amd64.deb
+dpkg -s "teamviewer" &> /dev/null  
+if [ $? -ne 0 ]; then
+  log_task "Installing teamviewer"
+  sudo wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
+  sudo dpkg -i teamviewer_amd64.deb
+  sudo rm teamviewer_amd64.deb
+fi
 
 printf "\n"
 log_task "Adding application repositories"
@@ -70,28 +82,42 @@ debian_packages=(
   "obs-studio"
 )
 for package in "${debian_packages[@]}"; do
-  printf "\n"
-  log_task "Installing $package"
-  sudo apt install -y "$package"
+  dpkg -s "$package" &> /dev/null  
+  if [ $? -ne 0 ]; then
+    printf "\n"
+    log_task "Installing $package"
+    sudo apt install -y "$package"
+  fi
 done
 
-
-snap_packages=(
-  "alacritty --classic"
-  "another-redis-desktop-manager"
-  "brave"
-  "codium --classic"
-  "dbeaver-ce"
-  "ngrok"
+classic_snap_packages=(
+  "alacritty"
+  "codium"
   "obsidian"
-  "postman"
-  "scrcpy"
   "sublime-text"
 )
+for package in "${classic_snap_packages[@]}"; do
+  if ! snap list | grep -q "^$package"; then
+    printf "\n"
+    log_task "Installing $package"
+    sudo snap install "$package" --classic
+  fi
+done
+
+snap_packages=(
+  "another-redis-desktop-manager"
+  "brave"
+  "dbeaver-ce"
+  "ngrok"
+  "postman"
+  "scrcpy"
+)
 for package in "${snap_packages[@]}"; do
-  printf "\n"
-  log_task "Installing $package"
-  sudo snap install "$package"
+  if ! snap list | grep -q "^$package"; then
+    printf "\n"
+    log_task "Installing $package"
+    sudo snap install "$package"
+  fi
 done
 
 printf "\n"
